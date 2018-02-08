@@ -8,17 +8,17 @@ from pymongo import MongoClient, ReplaceOne
 from .orders import get_order_items, get_all_orders
 from .utils import make_ratelimit_aware
 
-orders_api = mws.Orders(os.environ['US_AWS_ACCESS_KEY'],
-                        os.environ['US_MWS_SECRET_KEY'],
-                        os.environ['US_MWS_SELLERID'],
-                        region="US")
+marketplaceids = os.environ['MARKETPLACEIDS'].split(",")
+days_ago = 1 if 'DAYS_AGO' not in os.environ else int(os.environ['DAYS_AGO'])
+orders_api = mws.Orders(os.environ['AWS_ACCESS_KEY'],
+                        os.environ['MWS_SECRET_KEY'],
+                        os.environ['MWS_SELLERID'],
+                        region=os.environ['REGION'])
 
-yesterday = datetime.now() - timedelta(days=1)
-
-marketplace_usa = 'ATVPDKIKX0DER'
-get_us_orders_from_yesterday = partial(orders_api.list_orders,
-                                    marketplaceids=[marketplace_usa],
-                                    lastupdatedafter=str(yesterday))
+start_date = datetime.now() - timedelta(days=days_ago)
+get_us_orders_from_start_date = partial(orders_api.list_orders,
+                                    marketplaceids=marketplaceids,
+                                    lastupdatedafter=start_date.isoformat())
 retry_minute_after_ratelimit = partial(make_ratelimit_aware, mws.MWSError, 60)
 
 # Get all orders from Amazon
