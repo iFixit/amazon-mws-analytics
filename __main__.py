@@ -5,7 +5,7 @@ from mws import mws
 from functools import partial
 from pymongo import MongoClient, ReplaceOne
 
-from .orders import get_order_items, get_all_orders
+from .orders import get_order_items, orders_generator, set_document_id
 from .utils import make_ratelimit_aware
 
 marketplaceids = os.environ['MARKETPLACEIDS'].split(",")
@@ -22,8 +22,8 @@ get_us_orders_from_start_date = partial(orders_api.list_orders,
 retry_minute_after_ratelimit = partial(make_ratelimit_aware, mws.MWSError, 60)
 
 # Get all orders from Amazon
-orders = get_all_orders(
-    retry_minute_after_ratelimit(get_us_orders_from_yesterday),
+orders = orders_generator(
+    retry_minute_after_ratelimit(get_us_orders_from_start_date),
     retry_minute_after_ratelimit(orders_api.list_orders_by_next_token))
 
 # Create function to get order_items for each order
@@ -32,10 +32,9 @@ add_order_items = partial(
     retry_minute_after_ratelimit(orders_api.list_order_items),
     retry_minute_after_ratelimit(orders_api.list_order_items_by_next_token))
 
-orders = map(add_order_items, orders)
-
-UpsertOne = partial(ReplaceOne, upsert=True)
-bulk_upserts = map(lambda order: UpsertOne({"_id": order['_id']}, order), orders)
+orders = map(set_document_id, map(add_order_items, orders))
 
 mongo = MongoClient(os.environ['MONGODB_URI'])
-mongo.warehouse.amazon_orders.bulk_write(list(bulk_upserts))
+upsert_order = partial(mongo.warehouse.amazon_orders.replace_one, upsert=True)
+for order in orders:
+    upsert_order({"_id": order['_id']}, order)

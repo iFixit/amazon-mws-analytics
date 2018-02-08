@@ -1,22 +1,21 @@
 # This is for orders functions
 from .utils import flatten
 
-# TODO: Make sure to set _id to AmazonOrderId
-def get_all_orders(orders_getter, orders_next_getter):
-    def get_next_orders(orders_res):
-        """Given an Orders Resource, paginate through all Orders."""
+def orders_generator(orders_getter, orders_next_getter):
+    """Returns a generator for all orders"""
+    orders_res = orders_getter()
+    flattened_res = flatten(orders_res.parsed)
+
+    if 'Order' not in flattened_res['Orders']:
+        return
+
+    yield from flattened_res['Orders']['Order']
+
+    while 'NextToken' in flattened_res:
+        orders_res = orders_next_getter(flattened_res['NextToken'])
         flattened_res = flatten(orders_res.parsed)
-        orders = flattened_res['Orders']['Order']
 
-        if 'NextToken' not in flattened_res:
-            return orders
-
-        next_token = flattened_res['NextToken']
-        next_orders = orders_next_getter(next_token)
-
-        return orders + get_next_orders(next_orders)
-
-    return list(map(set_document_id, get_next_orders(orders_getter())))
+        yield from flattened_res['Orders']['Order']
 
 def get_order_items(item_getter, item_next_getter, order):
     items = item_getter(order['AmazonOrderId'])
