@@ -11,7 +11,8 @@ def flatten(tree):
     if list(tree.keys()) == ['value']:
         return tree['value']
 
-    del tree['value']
+    if 'value' in tree:
+        del tree['value']
     flattened = {}
 
     # If the tree has children, recurse.
