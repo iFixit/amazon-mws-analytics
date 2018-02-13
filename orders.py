@@ -26,7 +26,7 @@ def get_order_items(item_getter, item_next_getter, order):
     return order
 
 def process_order_items(items):
-    items = items.parsed['OrderItems']
+    items = items.parsed['OrderItems']['OrderItem']
 
     # If there's only one item is serialized as a dict.
     if type(items) is not list:
