@@ -32,7 +32,7 @@ def process_order_items(items):
     if type(items) is not list:
         items = [items]
 
-    return list(map(lambda item: item['OrderItem'], items))
+    return items
 
 def set_document_id(order):
     order['_id'] = order['AmazonOrderId']
