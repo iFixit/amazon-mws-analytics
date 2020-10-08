@@ -3,16 +3,17 @@ import iso8601
 import sys
 import time
 
+
 def flatten(tree):
     if type(tree) is list:
         return list(map(flatten, tree))
 
     # If the tree is a leaf, simply return the value.
-    if list(tree.keys()) == ['value']:
-        return tree['value']
+    if list(tree.keys()) == ["value"]:
+        return tree["value"]
 
-    if 'value' in tree:
-        del tree['value']
+    if "value" in tree:
+        del tree["value"]
     flattened = {}
 
     # If the tree has children, recurse.
@@ -21,31 +22,27 @@ def flatten(tree):
 
     return flattened
 
+
 def convert_types(key, value):
     boolean_keys = [
-        'IsReplacementOrder',
-        'IsBusinessOrder',
-        'IsPremiumOrder',
-        'IsPrime',
-        'IsGift'
+        "IsReplacementOrder",
+        "IsBusinessOrder",
+        "IsPremiumOrder",
+        "IsPrime",
+        "IsGift",
     ]
 
-    date_keys = [
-        'LatestShipDate',
-        'PurchaseDate',
-        'LastUpdateDate',
-        'EarliestShipDate'
-    ]
+    date_keys = ["LatestShipDate", "PurchaseDate", "LastUpdateDate", "EarliestShipDate"]
 
     int_keys = [
-        'NumberOfItemsShipped',
-        'NumberOfItemsUnshipped',
-        'QuantityOrdered',
-        'NumberOfItems',
-        'QuantityShipped'
+        "NumberOfItemsShipped",
+        "NumberOfItemsUnshipped",
+        "QuantityOrdered",
+        "NumberOfItems",
+        "QuantityShipped",
     ]
 
-    float_keys = ['Amount']
+    float_keys = ["Amount"]
 
     if key in boolean_keys:
         return key == "true"
@@ -57,6 +54,7 @@ def convert_types(key, value):
         return float(value)
     return value
 
+
 def make_ratelimit_aware(error, wait_seconds, fn):
     def ratelimit_runner(*args, **kwargs):
         try:
@@ -65,4 +63,5 @@ def make_ratelimit_aware(error, wait_seconds, fn):
             print("ratelimited", file=sys.stderr)
             time.sleep(wait_seconds)
             return fn(*args, **kwargs)
+
     return ratelimit_runner
