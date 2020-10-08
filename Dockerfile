@@ -1,9 +1,11 @@
-FROM alpine:latest
+FROM python:3.8-alpine
 
-RUN apk update && apk add python3 && mkdir -p /opt/amazon-mws-analytics
-COPY . /opt/amazon-mws-analytics
+WORKDIR /app
 
-WORKDIR /opt
-RUN cd /opt/amazon-mws-analytics && pip3 install -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENTRYPOINT python3 -m amazon-mws-analytics
+COPY *.py ./
+
+WORKDIR /
+CMD ["python", "-m", "app"]
