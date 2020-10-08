@@ -1,11 +1,11 @@
-# This file is for shared functionality between Amazon grabbing stuff
-import iso8601
 import sys
 import time
 
+import iso8601
+
 
 def flatten(tree):
-    if type(tree) is list:
+    if isinstance(tree, list):
         return list(map(flatten, tree))
 
     # If the tree is a leaf, simply return the value.
@@ -14,9 +14,9 @@ def flatten(tree):
 
     if "value" in tree:
         del tree["value"]
-    flattened = {}
 
     # If the tree has children, recurse.
+    flattened = {}
     for key in tree.keys():
         flattened[key] = convert_types(key, flatten(tree[key]))
 
@@ -55,12 +55,12 @@ def convert_types(key, value):
     return value
 
 
-def make_ratelimit_aware(error, wait_seconds, fn):
+def make_ratelimit_aware(error_cls, fn, wait_seconds):
     def ratelimit_runner(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
-        except error:
-            print("ratelimited", file=sys.stderr)
+        except error_cls as err:
+            print(f"error: {str(err)}", file=sys.stderr)
             time.sleep(wait_seconds)
             return fn(*args, **kwargs)
 
