@@ -2,7 +2,7 @@ REPO=amazon-mws-analytics
 
 .PHONY: build
 build:
-	docker build -t $(REPO):latest .
+	docker build --target prod -t $(REPO):latest .
 
 .PHONY: style
 style:
@@ -10,4 +10,5 @@ style:
 
 .PHONY: lint
 lint:
-	docker run --rm -it -v "$(PWD)":/data cytopia/pylint *.py
+	docker build --target lint -t $(REPO):lint .
+	docker run --rm -it $(REPO):lint
