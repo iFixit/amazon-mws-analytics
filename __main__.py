@@ -29,6 +29,7 @@ orders_api = mws.Orders(
 )
 
 start_date = datetime.now() - timedelta(days=DAYS_AGO)
+
 get_orders_from_start_date = partial(
     orders_api.list_orders,
     marketplaceids=MARKETPLACEIDS,
@@ -53,7 +54,7 @@ orders_itr = generate_orders(
 set_order_items_with_retry = partial(
     set_order_items,
     retry_after_error(orders_api.list_order_items, 60),
-    retry_after_error(orders_api.list_order_items_by_next_token, 60),
+    retry_after_error(lambda t: orders_api.list_order_items(next_token=t), 60),
 )
 
 orders_with_items = []

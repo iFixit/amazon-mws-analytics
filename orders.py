@@ -41,10 +41,18 @@ def set_order_items(item_getter, item_next_getter, order):
     """
     print(f"Listing items for order {order['AmazonOrderId']}...", end=" ")
     items_res = item_getter(order["AmazonOrderId"]).parsed
-    # TODO: Need to implement nextToken for orders with a shit ton of items
-    flattened_items = _flatten_items(items_res)
-    print(f"{len(flattened_items)} items")
-    order["OrderItems"] = flattened_items
+    flattened_res = _flatten_items(items_res)
+    items = flattened_res["OrderItems"]["OrderItem"]
+    print(f"{len(items)} items")
+    order["OrderItems"] = items
+
+    while "NextToken" in flattened_res:
+        print("Listing more items by NextToken...", end=" ")
+        items_res = item_next_getter(flattened_res["NextToken"]).parsed
+        flattened_res = _flatten_items(items_res)
+        items = flattened_res["OrderItems"]["OrderItem"]
+        print(f"{len(items)} items")
+        order["OrderItems"].extend(items)
 
 
 def _flatten_items(items_res):
@@ -52,4 +60,5 @@ def _flatten_items(items_res):
     # If there's only one item, it is serialized as a dict.
     if not isinstance(items, list):
         items = [items]
-    return flatten(items)
+    items_res["OrderItems"]["OrderItem"] = items
+    return flatten(items_res)
