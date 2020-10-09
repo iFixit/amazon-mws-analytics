@@ -55,13 +55,13 @@ def convert_types(key, value):
     return value
 
 
-def make_ratelimit_aware(error_cls, fn, wait_seconds):
+def make_ratelimit_aware(error_cls, make_request, wait_seconds):
     def ratelimit_runner(*args, **kwargs):
         try:
-            return fn(*args, **kwargs)
+            return make_request(*args, **kwargs)
         except error_cls as err:
             print(f"error: {str(err)}", file=sys.stderr)
             time.sleep(wait_seconds)
-            return fn(*args, **kwargs)
+            return make_request(*args, **kwargs)
 
     return ratelimit_runner

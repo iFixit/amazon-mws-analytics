@@ -9,8 +9,9 @@ from pymongo import MongoClient
 from .orders import set_order_items, orders_generator, set_document_id
 from .utils import make_ratelimit_aware
 
-marketplaceids = os.environ["MARKETPLACEIDS"].split(",")
-days_ago = 1 if "DAYS_AGO" not in os.environ else int(os.environ["DAYS_AGO"])
+MARKETPLACEIDS = os.environ["MARKETPLACEIDS"].split(",")
+DAYS_AGO = 1 if "DAYS_AGO" not in os.environ else int(os.environ["DAYS_AGO"])
+
 orders_api = mws.Orders(
     os.environ["AWS_ACCESS_KEY"],
     os.environ["MWS_SECRET_KEY"],
@@ -18,10 +19,10 @@ orders_api = mws.Orders(
     region=os.environ["REGION"],
 )
 
-start_date = datetime.now() - timedelta(days=days_ago)
+start_date = datetime.now() - timedelta(days=DAYS_AGO)
 get_orders_from_start_date = partial(
     orders_api.list_orders,
-    marketplaceids=marketplaceids,
+    marketplaceids=MARKETPLACEIDS,
     lastupdatedafter=start_date.isoformat(),
 )
 
