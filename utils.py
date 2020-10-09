@@ -1,3 +1,5 @@
+"""Support making requests to MWS and massaging the returned data."""
+
 import sys
 import time
 
@@ -5,6 +7,9 @@ import iso8601
 
 
 def flatten(tree):
+    """Convert tree, replacing {"value": x} nodes with x and converting values
+    to specific types based on the key.
+    """
     if isinstance(tree, list):
         return list(map(flatten, tree))
 
@@ -24,6 +29,7 @@ def flatten(tree):
 
 
 def convert_types(key, value):
+    """Convert value to a known type based on key."""
     boolean_keys = [
         "IsReplacementOrder",
         "IsBusinessOrder",
@@ -56,6 +62,14 @@ def convert_types(key, value):
 
 
 def make_ratelimit_aware(error_cls, make_request, wait_seconds):
+    """Return a function that wraps make_request, catching error_cls and
+    retrying the request one more time after waiting wait_seconds.
+
+    error_cls -- a type of Exception to catch
+    make_request -- a function that makes a request to MWS
+    wait_seconds -- an int or float: fractional seconds to wait before retry
+    """
+
     def ratelimit_runner(*args, **kwargs):
         try:
             return make_request(*args, **kwargs)

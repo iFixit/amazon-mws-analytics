@@ -1,3 +1,12 @@
+"""Fetch orders and their items from the Amazon MWS API for MARKETPLACEIDS,
+starting from now and going back DAYS_AGO days.
+
+All arguments are specified as environment variables. MARKETPLACEIDS must be
+present and is a comma-separated list of Amazon marketplace identifiers (e.g.,
+A2EUQ1WTGCTBG2). DAYS_AGO is an integer number of days and defaults to 1 if not
+present.
+"""
+
 import os
 import time
 from datetime import datetime, timedelta
@@ -6,7 +15,7 @@ from functools import partial
 from mws import mws
 from pymongo import MongoClient
 
-from .orders import set_order_items, orders_generator, set_document_id
+from .orders import set_order_items, generate_orders
 from .utils import make_ratelimit_aware
 
 MARKETPLACEIDS = os.environ["MARKETPLACEIDS"].split(",")
@@ -33,7 +42,7 @@ retry_after_error = partial(make_ratelimit_aware, mws.MWSError)
 # In the event that we hit the limit, we wait 180s to restore half the pool
 # (but this is quite unlikely, and should really only happen if some other task
 # is hitting the API at the same time).
-orders_itr = orders_generator(
+orders_itr = generate_orders(
     retry_after_error(get_orders_from_start_date, 180),
     retry_after_error(orders_api.list_orders_by_next_token, 180),
 )
@@ -41,7 +50,7 @@ orders_itr = orders_generator(
 # ListOrderItems has max quota 30 and restore rate 1 per 2s. We aim to slowly
 # wear down the quota and, in the event that we hit the limit, we wait 60s to
 # restore the full pool.
-add_order_items = partial(
+set_order_items_with_retry = partial(
     set_order_items,
     retry_after_error(orders_api.list_order_items, 60),
     retry_after_error(orders_api.list_order_items_by_next_token, 60),
@@ -51,8 +60,8 @@ orders_with_items = []
 for i, order in enumerate(orders_itr):
     if i > 0:
         time.sleep(1.5)
-    add_order_items(order)
-    set_document_id(order)
+    order["_id"] = order["AmazonOrderId"]
+    set_order_items_with_retry(order)
     orders_with_items.append(order)
 
 mongo = MongoClient(os.environ["MONGODB_URI"])
