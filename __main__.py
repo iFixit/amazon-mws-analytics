@@ -12,14 +12,12 @@ import time
 from datetime import datetime, timedelta
 from functools import partial
 
+import iso8601
 from mws import mws
 from pymongo import MongoClient
 
 from .orders import set_order_items, generate_orders
 from .utils import make_ratelimit_aware
-
-MARKETPLACEIDS = os.environ["MARKETPLACEIDS"].split(",")
-DAYS_AGO = 1 if "DAYS_AGO" not in os.environ else int(os.environ["DAYS_AGO"])
 
 orders_api = mws.Orders(
     os.environ["AWS_ACCESS_KEY"],
@@ -28,12 +26,26 @@ orders_api = mws.Orders(
     region=os.environ["REGION"],
 )
 
-start_date = datetime.now() - timedelta(days=DAYS_AGO)
+MARKETPLACEIDS = os.environ["MARKETPLACEIDS"].split(",")
+
+START_DATE = None
+END_DATE = None
+if "START_DATE" in os.environ:
+    START_DATE = iso8601.parse_date(os.environ["START_DATE"]).isoformat()
+    if "END_DATE" in os.environ:
+        END_DATE = iso8601.parse_date(os.environ["END_DATE"]).isoformat()
+else:
+    DAYS_AGO = 1 if "DAYS_AGO" not in os.environ else int(os.environ["DAYS_AGO"])
+    START_DATE = datetime.now() - timedelta(days=DAYS_AGO).isoformat()
+
+display_end_date = END_DATE if END_DATE is not None else "now"
+print(f"Fetching orders between {START_DATE} and {display_end_date}")
 
 get_orders_from_start_date = partial(
     orders_api.list_orders,
     marketplaceids=MARKETPLACEIDS,
-    lastupdatedafter=start_date.isoformat(),
+    lastupdatedafter=START_DATE,
+    lastupdatedbefore=END_DATE,
 )
 
 retry_after_error = partial(make_ratelimit_aware, mws.MWSError)

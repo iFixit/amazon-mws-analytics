@@ -39,7 +39,9 @@ def set_order_items(item_getter, item_next_getter, order):
     """Set the "OrderItems" key of an Order dict with the items associated with
     that order.
     """
-    print(f"Listing items for order {order['AmazonOrderId']}...", end=" ")
+    orderid = order["AmazonOrderId"]
+    last_updated = order["LastUpdateDate"].isoformat(timespec="seconds")
+    print(f"Listing items for order {orderid} ({last_updated})...", end=" ")
     items_res = item_getter(order["AmazonOrderId"]).parsed
     flattened_res = _flatten_items(items_res)
     items = flattened_res["OrderItems"]["OrderItem"]
