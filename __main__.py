@@ -48,9 +48,9 @@ orders_itr = generate_orders(
     retry_after_error(orders_api.list_orders_by_next_token, 180),
 )
 
-# ListOrderItems has max quota 30 and restore rate 1 per 2s. We aim to slowly
-# wear down the quota and, in the event that we hit the limit, we wait 60s to
-# restore the full pool.
+# ListOrderItems has max quota 30 and restore rate 1 per 2s. We aim to only
+# very slowly wear down the quota and, in the event that we hit the limit, we
+# wait 60s to restore the full pool.
 set_order_items_with_retry = partial(
     set_order_items,
     retry_after_error(orders_api.list_order_items, 60),
@@ -60,7 +60,7 @@ set_order_items_with_retry = partial(
 orders_with_items = []
 for i, order in enumerate(orders_itr):
     if i > 0:
-        time.sleep(1.5)
+        time.sleep(1.75)
     order["_id"] = order["AmazonOrderId"]
     set_order_items_with_retry(order)
     orders_with_items.append(order)
