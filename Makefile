@@ -6,9 +6,10 @@ build:
 
 .PHONY: style
 style:
-	docker run -it --rm -v "$(PWD)":/code jbbarth/black *.py
+	docker build --target dev -t $(REPO):dev .
+	docker run --rm -it -v "$(PWD)":/app $(REPO):dev black app
 
 .PHONY: lint
 lint:
-	docker build --target lint -t $(REPO):lint .
-	docker run --rm -it $(REPO):lint
+	docker build --target dev -t $(REPO):dev .
+	docker run --rm -it -v "$(PWD)":/app $(REPO):dev pylint app
