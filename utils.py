@@ -74,7 +74,7 @@ def make_ratelimit_aware(error_cls, make_request, wait_seconds):
         try:
             return make_request(*args, **kwargs)
         except error_cls as err:
-            print(f"error: {str(err)}", file=sys.stderr)
+            print(f"error: {err}", file=sys.stderr)
             time.sleep(wait_seconds)
             return make_request(*args, **kwargs)
 
