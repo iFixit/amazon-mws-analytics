@@ -16,7 +16,7 @@ import iso8601
 from mws import mws
 from pymongo import MongoClient
 
-from .orders import set_order_items, generate_orders
+from .orders import generate_orders, set_order_items
 from .utils import make_ratelimit_aware
 
 orders_api = mws.Orders(

@@ -7,6 +7,7 @@ build:
 .PHONY: style
 style:
 	docker build --target dev -t $(REPO):dev .
+	docker run --rm -it -v "$(PWD)":/app $(REPO):dev isort app
 	docker run --rm -it -v "$(PWD)":/app $(REPO):dev black app
 
 .PHONY: lint
