@@ -36,7 +36,7 @@ if "START_DATE" in os.environ:
         END_DATE = iso8601.parse_date(os.environ["END_DATE"]).isoformat()
 else:
     DAYS_AGO = 1 if "DAYS_AGO" not in os.environ else int(os.environ["DAYS_AGO"])
-    START_DATE = datetime.now() - timedelta(days=DAYS_AGO).isoformat()
+    START_DATE = (datetime.now() - timedelta(days=DAYS_AGO)).isoformat()
 
 display_end_date = END_DATE if END_DATE is not None else "now"
 print(f"Fetching orders between {START_DATE} and {display_end_date}")
