@@ -1,9 +1,17 @@
-FROM alpine:latest
+FROM python:3.8-alpine AS base
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN apk update && apk add python3 && mkdir -p /opt/amazon-mws-analytics
-COPY . /opt/amazon-mws-analytics
+FROM base AS dev
+# Alas, black depends on regex, which doesn't have an Alpine wheel, which means
+# we need to compile it, which means we need a build environment.
+RUN apk add --no-cache --virtual .black-build-deps gcc musl-dev \
+   && pip install --prefer-binary --no-cache-dir pylint black isort \
+   && apk del --no-cache .black-build-deps
+WORKDIR /
 
-WORKDIR /opt
-RUN cd /opt/amazon-mws-analytics && pip3 install -r requirements.txt
-
-ENTRYPOINT python3 -m amazon-mws-analytics
+FROM base AS prod
+COPY *.py ./
+WORKDIR /
+CMD ["python", "-m", "app"]
