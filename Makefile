@@ -5,12 +5,14 @@ build:
 	docker build --target prod -t $(REPO):latest .
 
 .PHONY: style
-style:
-	docker build --target dev -t $(REPO):dev .
+style: build-dev
 	docker run --rm -it -v "$(PWD)":/app $(REPO):dev isort app
 	docker run --rm -it -v "$(PWD)":/app $(REPO):dev black app
 
 .PHONY: lint
-lint:
-	docker build --target dev -t $(REPO):dev .
+lint: build-dev
 	docker run --rm -it -v "$(PWD)":/app $(REPO):dev pylint app
+
+.PHONY: build-dev
+build-dev:
+	docker build --target dev -t $(REPO):dev .
