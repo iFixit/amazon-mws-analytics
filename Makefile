@@ -1,4 +1,6 @@
 REPO=amazon-mws-analytics
+.PHONY: check
+check: style lint test
 
 .PHONY: build
 build:
