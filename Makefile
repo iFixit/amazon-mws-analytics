@@ -16,3 +16,7 @@ lint: build-dev
 .PHONY: build-dev
 build-dev:
 	docker build --target dev -t $(REPO):dev .
+
+.PHONY: test
+test: build-dev
+	docker run --rm -v "$(PWD)":/app $(REPO):dev pytest app
