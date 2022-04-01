@@ -7,7 +7,7 @@ FROM base AS dev
 # Alas, black depends on regex, which doesn't have an Alpine wheel, which means
 # we need to compile it, which means we need a build environment.
 RUN apk add --no-cache --virtual .black-build-deps gcc musl-dev \
-   && pip install --prefer-binary --no-cache-dir pylint black isort \
+   && pip install --prefer-binary --no-cache-dir pylint black isort pytest \
    && apk del --no-cache .black-build-deps
 WORKDIR /
 

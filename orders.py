@@ -20,6 +20,11 @@ def generate_orders(orders_getter, orders_next_getter):
     while "NextToken" in flattened_res:
         print("Listing more orders by NextToken...", end=" ")
         orders_res = orders_next_getter(flattened_res["NextToken"]).parsed
+
+        if "Order" not in orders_res["Orders"]:
+            print("no orders")
+            return
+
         flattened_res = _flatten_orders(orders_res)
         orders = flattened_res["Orders"]["Order"]
         print(f"{len(orders)} orders")
